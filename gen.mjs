@@ -120,8 +120,7 @@ async function main() {
   out.push('# 个人工作台');
   out.push('');
   out.push(`更新于 ${dateKey(now)} ${pad(now.getHours())}:${pad(now.getMinutes())}　·　待办 ${open.length} 项未完成　·　日程 ${filteredSchedule.length} 条`);
-  out.push('');
-  if (todos === null || schedule === null) {
+  out.push('');  if (todos === null || schedule === null) {
     out.push('> ⚠️ 本机数据文件暂时读不到，以下内容可能不完整。');
     out.push('');
   }
@@ -194,10 +193,21 @@ async function main() {
   out.push('');
   out.push('---');
   out.push('');
-  out.push('> 这份文件由本机定时生成并推送到这个私有仓库，手机上打开仓库就是上面的内容。');
+  out.push('> 这份文件由本机手动同步生成并推送到这个私有仓库，手机上打开仓库就是上面的内容。');
   out.push('> 要让 agent 改待办或日程，在会话里说「加到待办」「把周三的测试挪到周四」即可，改完这里下一次同步就是新的。');
 
-  await writeFile(join(HERE, 'README.md'), `${out.join('\n')}\n`, 'utf8');
+  const body = `${out.join('\n')}\n`;
+  let previous = '';
+  try {
+    previous = await readFile(join(HERE, 'README.md'), 'utf8');
+  } catch {
+    previous = '';
+  }
+  const stripStamp = (text) => text.split('\n').filter((line) => !line.startsWith('更新于 ')).join('\n');
+  const changed = stripStamp(previous) !== stripStamp(body);
+  if (changed) {
+    await writeFile(join(HERE, 'README.md'), body, 'utf8');
+  }
   await mkdir(join(HERE, 'data'), { recursive: true });
   await writeFile(
     join(HERE, 'data', 'todos.json'),
@@ -209,7 +219,7 @@ async function main() {
     `${JSON.stringify(filteredSchedule, null, 2)}\n`,
     'utf8',
   );
-  console.log(`ok ${dateKey(now)} ${pad(now.getHours())}:${pad(now.getMinutes())} open=${open.length} done=${done.length} schedule=${filteredSchedule.length}`);
+  console.log(`ok ${dateKey(now)} ${pad(now.getHours())}:${pad(now.getMinutes())} open=${open.length} done=${done.length} schedule=${filteredSchedule.length} changed=${changed}`);
 }
 
 main().catch((error) => {
