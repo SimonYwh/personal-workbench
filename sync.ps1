@@ -28,8 +28,11 @@ try {
   & $git add -A 2>&1 | Out-Null
   & $git commit -m "sync $(Get-Date -Format 'yyyy-MM-dd HH:mm')" 2>&1 | Out-Null
   & $git pull --rebase --autostash 2>&1 | Out-Null
-  $push = & $git push 2>&1 | Out-String
-  Write-Log ('pushed ' + ($push.Trim() -replace '\s+', ' ').Substring(0, [Math]::Min(200, $push.Trim().Length)))
+  $push = (& $git push 2>&1 | Out-String).Trim()
+  $push = $push -replace '\s+', ' '
+  if ($push.Length -gt 200) { $push = $push.Substring(0, 200) }
+  if ($push -eq '') { $push = '(no output)' }
+  Write-Log ('pushed ' + $push)
 } catch {
   Write-Log ('ERROR ' + $_.Exception.Message)
 } finally {
