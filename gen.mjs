@@ -150,7 +150,7 @@ function dayLayout(items, key) {
 
 const PAGE_CSS = `
 :root{
-  --paper:#FAF6EE; --ink:#1F1A15; --ink2:#6B5F53; --ink3:#9A8E80;
+  --paper:#FAF6EE; --ink:#1F1A15; --ink2:#6B5F53; --ink3:#786C5E;
   --rule:#E2D8C9; --rule2:#EDE5D8;
   --red:#B4371C; --amber:#C4713F; --blue:#547BB4; --ok:#5B8F3A;
   --serif:"Noto Serif SC","Songti SC","Source Han Serif SC",SimSun,serif;
@@ -159,7 +159,7 @@ const PAGE_CSS = `
 }
 @media (prefers-color-scheme:dark){
   :root{
-    --paper:#141210; --ink:#F2E9DC; --ink2:#A99B8B; --ink3:#7A6E62;
+    --paper:#141210; --ink:#F2E9DC; --ink2:#A99B8B; --ink3:#8C7E6F;
     --rule:#302A24; --rule2:#262119;
     --red:#E0998D; --amber:#D98B57; --blue:#7F9CC7; --ok:#9CBF74;
   }
@@ -251,6 +251,8 @@ h2{margin:0;font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:up
 .tl-now{position:absolute;left:0;right:0;height:0;border-top:1.5px solid var(--red);z-index:3}
 .tl-now::before{content:"";position:absolute;left:-4px;top:-4.5px;width:7px;height:7px;border-radius:50%;background:var(--red)}
 .tl-now span{position:absolute;right:0;top:-9px;font-family:var(--mono);font-size:9px;color:var(--red);background:var(--paper);padding:0 3px;letter-spacing:.04em}
+.ev.live{border-left-width:3px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--blue) 34%,transparent)}
+.ev.alt.live{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--amber) 34%,transparent)}
 .ev{
   position:absolute;padding:4px 7px 5px;border-left:2px solid var(--blue);
   background:color-mix(in srgb,var(--blue) 12%,transparent);
@@ -353,7 +355,7 @@ function renderTimeline(items, key, nowMinutes, isToday) {
   const parts = [];
 
   if (blocks.length === 0) {
-    parts.push('<p class="void">今天还是空的</p>');
+    parts.push('<p class="void">今天没有安排</p>');
   } else {
     const firstStart = blocks[0].start;
     const lastEnd = blocks.reduce((max, block) => Math.max(max, block.end), 0);
@@ -378,7 +380,14 @@ function renderTimeline(items, key, nowMinutes, isToday) {
       const width = 100 / lanes;
       const top = ((block.start - lo * 60) / 60) * HOUR;
       const height = Math.max(24, ((block.end - block.start) / 60) * HOUR - 2);
-      const cls = ['ev', block.lane % 2 === 1 ? 'alt' : '', block.conflict ? 'warn' : '', height < 34 ? 'short' : '']
+      const live = isToday && block.start <= nowMinutes && nowMinutes < block.end;
+      const cls = [
+        'ev',
+        block.lane % 2 === 1 ? 'alt' : '',
+        block.conflict ? 'warn' : '',
+        height < 34 ? 'short' : '',
+        live ? 'live' : '',
+      ]
         .filter(Boolean)
         .join(' ');
       const inner =
@@ -390,7 +399,7 @@ function renderTimeline(items, key, nowMinutes, isToday) {
       );
     }
     parts.push(
-      `<div class="tl" style="height:${(hi - lo) * HOUR + 14}px">${parts2.join('')}</div>`,
+      `<div class="tl" style="height:${(hi - lo) * HOUR + 14}px;--hour:${HOUR}px">${parts2.join('')}</div>`,
     );
   }
 
@@ -409,7 +418,7 @@ function renderTimeline(items, key, nowMinutes, isToday) {
 function renderNowBar(items, key, nowMinutes) {
   const { blocks } = dayLayout(items, key);
   if (blocks.length === 0) {
-    return '<p class="nowbar"><span class="dot"></span>今天没有安排<em>空</em></p>';
+    return blocks.length === 0 ? '' : '<p class="nowbar"><span class="dot"></span>今天没有安排</p>';
   }
   const current = blocks.find((block) => block.start <= nowMinutes && nowMinutes < block.end);
   if (current) {
@@ -605,7 +614,7 @@ function renderHtml(now, todos, items) {
 }
 
 function nowCount(count) {
-  return count === 0 ? '空' : `${count} 条`;
+  return count === 0 ? '—' : `${count} 条`;
 }
 
 function dayOfYear(date) {
@@ -738,3 +747,4 @@ main().catch((error) => {
   console.error('gen failed:', error);
   process.exitCode = 1;
 });
+
