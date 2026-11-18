@@ -604,7 +604,7 @@ function renderHtml(now, todos, items) {
 
   parts.push(
     '<footer>这是一份本机生成的静态快照，手机上只读。要改待办或日程，回 DSH 会话里说一声；' +
-      '页面每 10 分钟自动翻新一次，也可以在工作台里点「同步到手机」立刻更新。' +
+      '页面不会自己更新，想刷新就在工作台里点「同步到手机」。' +
       `<span class="stamp">${esc(stamp)}</span></footer>`,
   );
   parts.push('</main>');
